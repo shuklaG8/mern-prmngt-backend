@@ -1,7 +1,6 @@
 import { Router } from 'express';
 import UserController from '../controllers/user.controller.js';
-import { protect } from '../middleware/auth.protect.js';
-import authorize from '../middleware/role.authorize.js';
+import { authorizeRole } from '../middleware/role.authorize.js';
 import { validate } from '../middleware/validate.middleware.js';
 import {
   createUserSchema,
@@ -12,9 +11,8 @@ import {
 
 const router = Router();
 
-// All user routes require authentication and Admin role
-router.use(protect);
-router.use(authorize('Admin'));
+// All user routes require Admin role
+router.use(authorizeRole('Admin'));
 
 router.get('/', UserController.getUsers);
 router.post('/', validate(createUserSchema), UserController.createUser);

@@ -81,11 +81,50 @@ export class DashboardController {
       .populate('assignedUsers', 'name email avatar')
       .sort({ endDate: 1 });
 
+    // Calculate 12-month analytics based on real project data in DB
+    const allProjects = await Project.find(projectFilter);
+    const currentYear = new Date().getFullYear();
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    
+    const monthlyData = months.map((monthName, index) => {
+      const startOfMonth = new Date(currentYear, index, 1);
+      const endOfMonth = new Date(currentYear, index + 1, 0, 23, 59, 59, 999);
+      
+      // Count projects active during this month
+      const activeCount = allProjects.filter(p => {
+        const start = new Date(p.startDate);
+        const end = new Date(p.endDate);
+        return start <= endOfMonth && end >= startOfMonth;
+      }).length;
+
+      // Count projects completed during this month
+      const completedCount = allProjects.filter(p => {
+        if (p.status !== 'Completed') return false;
+        const compDate = p.updatedAt ? new Date(p.updatedAt) : new Date(p.endDate);
+        return compDate >= startOfMonth && compDate <= endOfMonth;
+      }).length;
+
+      return {
+        month: monthName,
+        tasks: activeCount,
+        completed: completedCount
+      };
+    });
+
     const statsPayload = {
       totalUsers,
       totalProjects,
-      projectsByStatus,
+      projectsByStatus: {
+        pending: projectsByStatus.pending,
+        inProgress: projectsByStatus.inProgress,
+        completed: projectsByStatus.completed,
+        Pending: projectsByStatus.pending,
+        "In-Progress": projectsByStatus.inProgress,
+        Completed: projectsByStatus.completed,
+      },
+      projectsDueSoon: endingSoonProjects,
       endingSoonProjects,
+      monthlyData,
     };
 
     new ApiResponse(200, statsPayload, 'Dashboard stats fetched successfully').send(res);
@@ -94,8 +133,21 @@ export class DashboardController {
   static getActivityLogs = asyncHandler(async (req, res) => {
     const page = parseInt(req.query.page, 10) || 1;
     const limit = parseInt(req.query.limit, 10) || 15;
+    const status = req.query.status;
 
-    const data = await AuditLogService.getLogs({ page, limit });
+    let projectTitles = [];
+    if (req.user.role !== 'Admin') {
+      const userProjects = await Project.find({ assignedUsers: req.user._id }).select('title');
+      projectTitles = userProjects.map(p => p.title);
+    }
+
+    const data = await AuditLogService.getLogs({
+      page,
+      limit,
+      status,
+      projectTitles,
+      userRole: req.user.role,
+    });
     new ApiResponse(200, data, 'Activity logs fetched successfully').send(res);
   });
 }

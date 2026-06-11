@@ -43,10 +43,8 @@ export const errorHandler = (err, req, res, next) => {
       message = 'File upload error';
       if (error.code === 'LIMIT_FILE_SIZE') {
         message = 'File size is too large. Max limit is 5MB.';
-      } else if (error.code === 'LIMIT_FILE_COUNT') {
-        message = 'Too many files uploaded. Max limit is 3.';
-      } else if (error.code === 'LIMIT_UNEXPECTED_FILE') {
-        message = `Unexpected file field name: ${error.field || 'attachments'}`;
+      } else if (error.code === 'LIMIT_FILE_COUNT' || error.code === 'LIMIT_UNEXPECTED_FILE') {
+        message = 'A project cannot have more than 3 attachments.';
       }
     }
 

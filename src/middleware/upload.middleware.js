@@ -23,13 +23,12 @@ const storage = multer.diskStorage({
 
 // File Type Validation Filter
 const fileFilter = (req, file, cb) => {
-  const allowedExtensions = ['.jpg', '.jpeg', '.png', '.pdf', '.docx'];
+  const allowedExtensions = ['.jpg', '.jpeg', '.png', '.pdf'];
   const allowedMimeTypes = [
     'image/jpeg',
     'image/jpg',
     'image/png',
     'application/pdf',
-    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
   ];
 
   const ext = path.extname(file.originalname).toLowerCase();

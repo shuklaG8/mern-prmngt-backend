@@ -5,6 +5,7 @@ import ApiResponse from '../utils/apiResponse.js';
 import asyncHandler from '../utils/asyncHandler.js';
 import { emitToUser, emitToAdmins } from '../config/socket.js';
 import { ApiError } from '../utils/apiError.js';
+import fs from 'fs';
 
 export class ProjectController {
   static createProject = asyncHandler(async (req, res) => {
@@ -22,6 +23,12 @@ export class ProjectController {
     // Process uploaded files if any
     const attachments = [];
     if (req.files && req.files.length > 0) {
+      if (req.files.length > 3) {
+        req.files.forEach(f => {
+          try { if (fs.existsSync(f.path)) fs.unlinkSync(f.path); } catch (e) {}
+        });
+        throw new ApiError(400, 'A project cannot have more than 3 attachments.');
+      }
       for (const file of req.files) {
         const fileData = await UploadService.uploadFile(file);
         attachments.push(fileData);
@@ -178,7 +185,8 @@ export class ProjectController {
   });
 
   static updateProjectStatus = asyncHandler(async (req, res) => {
-    const { projectId, status, doing, done, willDo } = req.body;
+    const projectId = req.params.id || req.body.projectId;
+    const { status, doing, done, willDo } = req.body;
     const project = await ProjectService.updateProjectStatus(
       projectId,
       status,

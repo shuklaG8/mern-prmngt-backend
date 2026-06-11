@@ -79,6 +79,20 @@ export const updateProjectStatusSchema = z.object({
   }),
 });
 
+export const updateProjectStatusParamSchema = z.object({
+  params: z.object({
+    id: z.string().refine(isObjectId, { message: 'Invalid Project ID format' }),
+  }),
+  body: z.object({
+    status: z.enum(['Pending', 'In-Progress', 'Completed'], {
+      required_error: 'Status is required and must be Pending, In-Progress, or Completed',
+    }),
+    doing: z.string().optional(),
+    done: z.string().optional(),
+    willDo: z.string().optional(),
+  }),
+});
+
 export const projectIdParamSchema = z.object({
   params: z.object({
     id: z.string().refine(isObjectId, { message: 'Invalid Project ID format' }),
