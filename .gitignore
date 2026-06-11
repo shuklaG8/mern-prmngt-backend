@@ -1,0 +1,25 @@
+# Dependency directories
+node_modules/
+
+# Local env files
+.env
+.env*.local
+
+# Local file uploads
+src/uploads/*
+!src/uploads/.gitkeep
+
+# Logs
+logs
+*.log
+npm-debug.log*
+
+# OS and Editor configurations
+.DS_Store
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
